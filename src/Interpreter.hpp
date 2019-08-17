@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <fstream>
 #include <array>
+#include <memory>
 
 /** \def Chip8 RAM size 4096 KB */
 #define CHIP8_RAM_SIZE 4096
@@ -30,12 +31,12 @@ class Interpreter
 		Interpreter();
 		~Interpreter();
     
-        bool Initialize(const char* filePath);
+        bool Initialize(const char* filePath, uint16_t windowWidth, uint16_t windowHeight);
         void Run();
     
     private:
     
-        bool InitializeEmulatorRAM();
+        bool InitializeEmulatorRAM(uint16_t windowWidth, uint16_t windowHeight);
         bool InitializeFontset();
         bool OpenAndLoadFile(const char* filePath);
     
@@ -55,8 +56,8 @@ class Interpreter
         std::array<uint8_t, CHIP8_REGISTER_BANK_SIZE> m_registerV;
         /** Emulator fontset */
         std::array<uint8_t, CHIP8_FONTSET_SIZE> m_fontset;
-    /** Emulator screen buffer (64*32) */
-        std::array<uint16_t, CHIP8_WIDTH * CHIP8_HEIGHT> m_screenBuffer;
+        /** Emulator screen buffer (64*32) */
+        std::unique_ptr<uint8_t[]> m_pScreenBuffer;
 
 }; // Interpreter
 

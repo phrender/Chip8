@@ -10,6 +10,11 @@
 Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_I(0x000)
 {
     /**
+        Initialize the screen buffer
+     */
+    m_pScreenBuffer.reset();
+    
+    /**
         Clears any data obtained during initialization of 'm_stack' and 'm_registerV'
      */
     m_stack = {};
@@ -29,9 +34,9 @@ Interpreter::~Interpreter()
     @param[in] filePath Path to the ROM file to load
     @return true or false depending on initialization of emulator RAM and loading of the ROM
  */
-bool Interpreter::Initialize(const char* filePath)
+bool Interpreter::Initialize(const char* filePath, uint16_t windowWidth, uint16_t windowHeight)
 {
-    if (!InitializeEmulatorRAM())
+    if (!InitializeEmulatorRAM(windowWidth, windowHeight))
     {
         printf("Error: Failed to allocate RAM for Chip8!\n");
         return false;
@@ -172,13 +177,24 @@ void Interpreter::Run()
 };
 
 /**
-    Allocates 4096 KB to emulate Chip8's amount of RAM,
+    Allocates 4096 KB to emulate Chip8's amount of RAM and the screen buffer
+ 
+    @param[in] windowWidth The width of the window
+    @param[in] windowHeight The height of the window
+ 
+    @return Successful state if we initialize the RAM and screen buffer
  */
-bool Interpreter::InitializeEmulatorRAM()
+bool Interpreter::InitializeEmulatorRAM(uint16_t windowWidth, uint16_t windowHeight)
 {
     m_memory.fill(0x00);
     
-    return !m_memory.empty();
+    m_pScreenBuffer.reset(new uint8_t[windowWidth * windowHeight]);
+    std::fill(
+              m_pScreenBuffer.get(),
+              m_pScreenBuffer.get() + (windowWidth * windowHeight),
+              0x00);
+    
+    return !m_memory.empty() && m_pScreenBuffer != nullptr;
 };
 
 /**

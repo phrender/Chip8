@@ -19,23 +19,31 @@ SDL_Surface* g_pSurface = nullptr;
 bool g_quit = false;
 
 /**
- * Initialize SDL for Chip8 emulator
- *
- * @param[in] windowName  nameof the window as a std::string
- * @param[in] windowWidth width of the window
- * @param[in] windowHeight height of the window
- *
- * @return sucessful state if SDL is initialized.
+    Initialize SDL for Chip8 emulator
+
+    @param[in] windowName  nameof the window as a std::string
+    @param[in] windowWidth width of the window
+    @param[in] windowHeight height of the window
+
+    @return sucessful state if SDL is initialized.
  */
-bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t windowHeight);
+bool InitializeSDL(const std::string& windowName, uint16_t windowWidth, uint16_t windowHeight);
+
+/**
+    Handle input for the emulator
+ */
 void HandleInput();
+
+/**
+    Shutdown SDL when exiting the emulator
+ */
 void ShutdownSDL();
 
 int main(int argc, char** argv)
 {
     if (auto data = std::make_unique<Interpreter>())
     {
-        if (argc == 2 && data->Initialize(argv[1]) && InitializeSDL("Chip8", 640, 320))
+        if (InitializeSDL("Chip8", 640, 320) && /*argc == 2 &&*/ data->Initialize("../../../rom/test_opcode.ch8"/*argv[1]*/, g_pSurface->w, g_pSurface->h))
         {
             uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
             while (!g_quit)
@@ -59,7 +67,7 @@ int main(int argc, char** argv)
     return -1;
 };
 
-bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t windowHeight)
+bool InitializeSDL(const std::string& windowName, uint16_t windowWidth, uint16_t windowHeight)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
