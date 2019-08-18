@@ -71,6 +71,19 @@ void Interpreter::Run()
     switch (opcode & 0xF000) {
         case 0x000:
             // Execute SYS addr
+
+			/**
+				0x0000
+					Clear display.
+			*/
+			if ((opcode & 0x000F) == 0x0000)
+			{
+				uint16_t pixels = GetEmulatorWidth() * GetEmulatorHeight();
+				std::fill(
+					m_pScreenBuffer.get(),
+					m_pScreenBuffer.get() + pixels,
+					0x00);
+			};
             
             /**
                 0x00EE
@@ -161,6 +174,7 @@ void Interpreter::Run()
 			 */
 		case 0xA000:
 			m_I = opcode & 0x0FFF;
+			pc = opcode & 0x0FFF;
 			break;
 
 			/**
@@ -171,6 +185,31 @@ void Interpreter::Run()
 			 */
 		case 0xD000:
             break;
+
+			/**
+				E000
+					Handle input.
+			*/
+		case 0xE000:
+			
+			/**
+				Ex9E
+					Skip next instruction if the key with value Vx is pressed.
+			*/
+			if ((opcode & 0x00FF) == 0x009E)
+			{
+				// TODO: Handle input
+			}
+
+			/**
+				ExA1
+					Skip the next instruction if the key with value Vx is released.
+			*/
+			else if ((opcode & 0x00FF) == 0x00A1)
+			{
+				// TODO: Handle input
+			};
+			break;
             
         default:
             break;
