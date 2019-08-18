@@ -29,7 +29,7 @@ class Interpreter
     
         bool Initialize(const char* filePath, uint16_t screenSize);
         void Run();
-    
+
     private:
     
         bool InitializeEmulatorRAM();
@@ -57,7 +57,7 @@ class Interpreter
         std::array<uint8_t, CHIP8_REGISTER_BANK_SIZE> m_registerV;
         /** Emulator fontset */
         std::array<uint8_t, CHIP8_FONTSET_SIZE> m_fontset;
-        /** Emulator screen buffer (64*32) */
+        /** Emulator screen buffer (ex. 64*32) */
         std::unique_ptr<uint8_t[]> m_pScreenBuffer;
 
 }; // Interpreter

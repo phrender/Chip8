@@ -92,7 +92,6 @@ void Interpreter::Run()
             if (opcode == 0x00EE)
             {
                 pc = m_stack[m_stackPointer];
-                m_stack[m_stackPointer] = 0x0000;
                 m_stackPointer--;
             };
             
@@ -174,7 +173,6 @@ void Interpreter::Run()
 			 */
 		case 0xA000:
 			m_I = opcode & 0x0FFF;
-			pc = opcode & 0x0FFF;
 			break;
 
 			/**
@@ -182,6 +180,7 @@ void Interpreter::Run()
 					Display n-byte sprite starting at location of I
 					x - positionX from Vx
 					y - positionY from Vy
+					n - read n bytes from memory
 			 */
 		case 0xD000:
             break;
@@ -266,15 +265,6 @@ bool Interpreter::InitializeFontset()
         0xE0, 0x90, 0x90, 0x90, 0xE0, // D
         0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-    };
-    
-    // Validate font set(?)
-    for (auto font : m_fontset)
-    {
-        if (font == 0x00)
-        {
-            return false;
-        };
     };
     
     return !m_fontset.empty();

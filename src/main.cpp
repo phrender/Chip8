@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 {
     if (auto data = std::make_unique<Interpreter>())
     {
-        if (InitializeSDL("Chip8", 640, 320) && /*argc == 2 &&*/ data->Initialize("../../rom/test_opcode.ch8"/*argv[1]*/, g_screenSize))
+        if (InitializeSDL("Chip8", 640, 320) && argc == 2 && data->Initialize(argv[1], g_screenSize))
         {
             uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
 			while (!g_quit)
