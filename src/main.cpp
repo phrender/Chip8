@@ -3,6 +3,8 @@
 #include "Interpreter.hpp"
 #include <SDL.h>
 
+#undef main		// Undef main so we don't use SDL's main()
+
 /**
  * SDL Window pointer
  */
@@ -19,6 +21,11 @@ SDL_Surface* g_pSurface = nullptr;
 bool g_quit = false;
 
 /**
+	uint16_t to store screen width and height
+*/
+constexpr uint16_t screenSize = 0x4020;		// Store width (64) in two upper nibbles and height (32) in the two lower nibbles
+
+/**
     Initialize SDL for Chip8 emulator
 
     @param[in] windowName  nameof the window as a std::string
@@ -27,7 +34,7 @@ bool g_quit = false;
 
     @return sucessful state if SDL is initialized.
  */
-bool InitializeSDL(const std::string& windowName, uint16_t windowWidth, uint16_t windowHeight);
+bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t windowHeight);
 
 /**
     Handle input for the emulator
@@ -43,20 +50,20 @@ int main(int argc, char** argv)
 {
     if (auto data = std::make_unique<Interpreter>())
     {
-        if (InitializeSDL("Chip8", 640, 320) && /*argc == 2 &&*/ data->Initialize("../../../rom/test_opcode.ch8"/*argv[1]*/, g_pSurface->w, g_pSurface->h))
+        if (InitializeSDL("Chip8", 640, 320) && argc == 2 && data->Initialize(argv[1], screenSize))
         {
             uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
-            while (!g_quit)
-            {
-                data->Run();
-                HandleInput();
-                
-                SDL_LockSurface(g_pSurface);
-                std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
-                SDL_UnlockSurface(g_pSurface);
-                
-                SDL_UpdateWindowSurface(g_pWindow);
-            }
+			while (!g_quit)
+			{
+				data->Run();
+				HandleInput();
+
+				SDL_LockSurface(g_pSurface);
+				std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
+				SDL_UnlockSurface(g_pSurface);
+
+				SDL_UpdateWindowSurface(g_pWindow);
+			};
             ShutdownSDL();
             
             return 0;
@@ -67,7 +74,7 @@ int main(int argc, char** argv)
     return -1;
 };
 
-bool InitializeSDL(const std::string& windowName, uint16_t windowWidth, uint16_t windowHeight)
+bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t windowHeight)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {

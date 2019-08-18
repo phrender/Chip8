@@ -2,18 +2,17 @@
 #include "Interpreter.hpp"
 
 #define GetRegister(opcode) ( (opcode & 0x0F00) >> 8 )
-#define CHIP8_JUMP_TWO_INCSTUCTIONS 4
 
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_I(0x000)
+Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_I(0x000), m_memory({})
 {
     /**
         Initialize the screen buffer
      */
     m_pScreenBuffer.reset();
-    
+
     /**
         Clears any data obtained during initialization of 'm_stack' and 'm_registerV'
      */
@@ -34,9 +33,9 @@ Interpreter::~Interpreter()
     @param[in] filePath Path to the ROM file to load
     @return true or false depending on initialization of emulator RAM and loading of the ROM
  */
-bool Interpreter::Initialize(const char* filePath, uint16_t windowWidth, uint16_t windowHeight)
+bool Interpreter::Initialize(const char* filePath, uint16_t screenSize)
 {
-    if (!InitializeEmulatorRAM(windowWidth, windowHeight))
+    if (!InitializeEmulatorRAM(screenSize))
     {
         printf("Error: Failed to allocate RAM for Chip8!\n");
         return false;
@@ -184,14 +183,16 @@ void Interpreter::Run()
  
     @return Successful state if we initialize the RAM and screen buffer
  */
-bool Interpreter::InitializeEmulatorRAM(uint16_t windowWidth, uint16_t windowHeight)
+bool Interpreter::InitializeEmulatorRAM(uint16_t screenSize)
 {
     m_memory.fill(0x00);
     
-    m_pScreenBuffer.reset(new uint8_t[windowWidth * windowHeight]);
+	uint16_t pixels = (static_cast<uint16_t>(screenSize) >> 8) *		// Retrieve the two higher nibbles for the width
+						(0x00FF & static_cast<uint16_t>(screenSize));	// Multiply the two retrieved higher nibbles with the two lower to get the resolution of the Chip8 screen.
+    m_pScreenBuffer.reset(new uint8_t[screenSize]);
     std::fill(
               m_pScreenBuffer.get(),
-              m_pScreenBuffer.get() + (windowWidth * windowHeight),
+              m_pScreenBuffer.get() + pixels,
               0x00);
     
     return !m_memory.empty() && m_pScreenBuffer != nullptr;

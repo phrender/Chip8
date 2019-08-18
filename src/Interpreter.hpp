@@ -31,12 +31,12 @@ class Interpreter
 		Interpreter();
 		~Interpreter();
     
-        bool Initialize(const char* filePath, uint16_t windowWidth, uint16_t windowHeight);
+        bool Initialize(const char* filePath, uint16_t screenSize);
         void Run();
     
     private:
     
-        bool InitializeEmulatorRAM(uint16_t windowWidth, uint16_t windowHeight);
+        bool InitializeEmulatorRAM(uint16_t screenSize);
         bool InitializeFontset();
         bool OpenAndLoadFile(const char* filePath);
     
