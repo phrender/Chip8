@@ -6,18 +6,20 @@
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_I(0x000), m_memory({})
+Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_I(0x000), m_screenSize(0x0000)
 {
     /**
         Initialize the screen buffer
      */
     m_pScreenBuffer.reset();
-
-    /**
-        Clears any data obtained during initialization of 'm_stack' and 'm_registerV'
-     */
-    m_stack = {};
-    m_registerV = {};
+	
+	/**
+		Zero all bits in arrays
+	*/
+	m_memory.fill(0x00);
+	m_registerV.fill(0x00);
+	m_fontset.fill(0x00);
+	m_stack.fill(0x0000);
 };
 
 /**
@@ -35,7 +37,9 @@ Interpreter::~Interpreter()
  */
 bool Interpreter::Initialize(const char* filePath, uint16_t screenSize)
 {
-    if (!InitializeEmulatorRAM(screenSize))
+	m_screenSize = m_screenSize;
+
+    if (!InitializeEmulatorRAM())
     {
         printf("Error: Failed to allocate RAM for Chip8!\n");
         return false;
@@ -81,92 +85,91 @@ void Interpreter::Run()
             
             break;
             
-            /**
-                1nnn:
-                    Jump to location nnn.
-             */
+			/**
+				1nnn:
+					Jump to location nnn.
+			 */
         case 0x1000:
-            pc = opcode & 0x0FFF;
-            break;
-            
-            /**
-                2nnn:
-                    Call subroutine at nnn.
-             */
-        case 0x2000:
-            m_stackPointer++;
-            m_stack[m_stackPointer] = m_programCounter;
-            pc = (opcode & 0x0FFF);
-            break;
-            
-            /**
-                3xkk
-                    Compare register x to kk, if equal increment program counter by 2
-             */
-        case 0x3000:
-            pc += m_registerV[GetRegister(opcode)] == (opcode & 0x00FF) ? CHIP8_INSTRUCTION_SIZE : 0;
-            break;
-            
-            /**
-                4xkk
-                    Compare register x to kk, is not equal increment program counter by 2
-             */
-        case 0x4000:
-            pc += m_registerV[GetRegister(opcode)] != (opcode & 0x00FF) ? CHIP8_INSTRUCTION_SIZE : 0;
-            break;
-            
-            /**
-                5xy0
-                    Compare register x and y, if x and y is equal increment program counter by 2
-             */
-        case 0x5000:
-            pc += m_registerV[(opcode & 0x0F00) >> 8] == m_registerV[(opcode & 0x00F0 >> 4)] ? CHIP8_INSTRUCTION_SIZE : 0;
-            break;
-            
-            /**
-                6xkk
-                    Store kk in register x
-             */
-        case 0x6000:
-            m_registerV[GetRegister(opcode)] = opcode & 0x00FF;
-            break;
-            
-            /**
-                7xkk
-                    Set register x to x + kk
-             */
-        case 0x7000:
-            m_registerV[GetRegister(opcode)] += (opcode & 0x00FF);
-            break;
-            
-        case 0x8000:
-            break;
-            
-            /**
-                9xy0
-                    Skip next instruction if register x is equal to register y
-             */
-        case 0x9000:
-            pc += m_registerV[(opcode & 0x0F00) >> 8] != m_registerV[(opcode & 0x00F0) >> 4] ? CHIP8_INSTRUCTION_SIZE : 0;
-            break;
-            
-            /**
-                Annn
-                    Set I to nnn
-                    Program counter is set to value nnn
-             */
-        case 0xA000:
-            m_I = opcode & 0x0FFF;
-            break;
-            
-            /**
-                Dxyn
-                    Display n-byte sprite starting at location of I
-                    x - positionX?
-                    y - positionY?
-             */
-        case 0xD000:
-            // Draw code here?
+			pc = opcode & 0x0FFF;
+			break;
+
+			/**
+				2nnn:
+					Call subroutine at nnn.
+			 */
+		case 0x2000:
+			m_stackPointer++;
+			m_stack[m_stackPointer] = m_programCounter;
+			pc = (opcode & 0x0FFF);
+			break;
+
+			/**
+				3xkk
+					Compare register x to kk, if equal increment program counter by 2
+			 */
+		case 0x3000:
+			pc += m_registerV[GetRegister(opcode)] == (opcode & 0x00FF) ? CHIP8_INSTRUCTION_SIZE : 0;
+			break;
+
+			/**
+				4xkk
+					Compare register x to kk, is not equal increment program counter by 2
+			 */
+		case 0x4000:
+			pc += m_registerV[GetRegister(opcode)] != (opcode & 0x00FF) ? CHIP8_INSTRUCTION_SIZE : 0;
+			break;
+
+			/**
+				5xy0
+					Compare register x and y, if x and y is equal increment program counter by 2
+			 */
+		case 0x5000:
+			pc += m_registerV[(opcode & 0x0F00) >> 8] == m_registerV[(opcode & 0x00F0 >> 4)] ? CHIP8_INSTRUCTION_SIZE : 0;
+			break;
+
+			/**
+				6xkk
+					Store kk in register x
+			 */
+		case 0x6000:
+			m_registerV[GetRegister(opcode)] = opcode & 0x00FF;
+			break;
+
+			/**
+				7xkk
+					Set register x to x + kk
+			 */
+		case 0x7000:
+			m_registerV[GetRegister(opcode)] += (opcode & 0x00FF);
+			break;
+
+		case 0x8000:
+			break;
+
+			/**
+				9xy0
+					Skip next instruction if register x is equal to register y
+			 */
+		case 0x9000:
+			pc += m_registerV[(opcode & 0x0F00) >> 8] != m_registerV[(opcode & 0x00F0) >> 4] ? CHIP8_INSTRUCTION_SIZE : 0;
+			break;
+
+			/**
+				Annn
+					Set I to nnn
+					Program counter is set to value nnn
+			 */
+		case 0xA000:
+			m_I = opcode & 0x0FFF;
+			break;
+
+			/**
+				Dxyn
+					Display n-byte sprite starting at location of I
+					x - positionX from Vx
+					y - positionY from Vy
+			 */
+		case 0xD000:
             break;
             
         default:
@@ -183,13 +186,13 @@ void Interpreter::Run()
  
     @return Successful state if we initialize the RAM and screen buffer
  */
-bool Interpreter::InitializeEmulatorRAM(uint16_t screenSize)
+bool Interpreter::InitializeEmulatorRAM()
 {
     m_memory.fill(0x00);
     
-	uint16_t pixels = (static_cast<uint16_t>(screenSize) >> 8) *		// Retrieve the two higher nibbles for the width
-						(0x00FF & static_cast<uint16_t>(screenSize));	// Multiply the two retrieved higher nibbles with the two lower to get the resolution of the Chip8 screen.
-    m_pScreenBuffer.reset(new uint8_t[screenSize]);
+	uint16_t pixels = (static_cast<uint16_t>(m_screenSize) >> 8) *		// Retrieve the two higher nibbles for the width
+						(0x00FF & static_cast<uint16_t>(m_screenSize));	// Multiply the two retrieved higher nibbles with the two lower to get the resolution of the Chip8 screen.
+    m_pScreenBuffer.reset(new uint8_t[pixels]);
     std::fill(
               m_pScreenBuffer.get(),
               m_pScreenBuffer.get() + pixels,
@@ -204,10 +207,7 @@ bool Interpreter::InitializeEmulatorRAM(uint16_t screenSize)
     @return Successfull state if we fill the fontset with keys '0' through 'F'
  */
 bool Interpreter::InitializeFontset()
-{
-    // Clear the array
-    m_fontset = {};
-    
+{   
     // Insert the fonset.
     m_fontset =
     {
@@ -285,4 +285,20 @@ bool Interpreter::OpenAndLoadFile(const char* filePath)
     pEmulatorRom = nullptr;
     
     return !file.is_open() && pEmulatorRom == nullptr;
+};
+
+/**
+	Retrieve emulator screen width from screenSize
+*/
+uint16_t Interpreter::GetEmulatorWidth() const
+{
+	return static_cast<uint16_t>(m_screenSize) >> 8;
+};
+
+/**
+	Retrieve emulator screen height from screenSize
+*/
+uint16_t Interpreter::GetEmulatorHeight() const
+{
+	return (0x00FF & static_cast<uint16_t>(m_screenSize));
 };

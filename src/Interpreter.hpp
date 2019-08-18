@@ -17,10 +17,6 @@
 #define CHIP8_STACK_SIZE 16
 /** \def Number of keys available on a Chip8 */
 #define CHIP8_KEYBOARD_SIZE 16
-/** \def Chip8 screen width */
-#define CHIP8_WIDTH 64
-/** \def Chip8 screen height */
-#define CHIP8_HEIGHT 32
 /** \def Chip8 fonstset size */
 #define CHIP8_FONTSET_SIZE 80
 
@@ -36,14 +32,19 @@ class Interpreter
     
     private:
     
-        bool InitializeEmulatorRAM(uint16_t screenSize);
+        bool InitializeEmulatorRAM();
         bool InitializeFontset();
         bool OpenAndLoadFile(const char* filePath);
+
+		uint16_t GetEmulatorWidth() const;
+		uint16_t GetEmulatorHeight() const;
     
 	private:
 
         /** Holds the current position of the stack*/
         int8_t m_stackPointer;
+		/** Holds the screen size (ex. 0x4020 = 64*32) */
+		uint16_t m_screenSize;
         /** Emulator RAM */
         std::array<uint8_t, CHIP8_RAM_SIZE> m_memory;
         /** Emulator program counter, starts at byte 512 */

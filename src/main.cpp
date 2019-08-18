@@ -23,7 +23,7 @@ bool g_quit = false;
 /**
 	uint16_t to store screen width and height
 */
-constexpr uint16_t screenSize = 0x4020;		// Store width (64) in two upper nibbles and height (32) in the two lower nibbles
+constexpr uint16_t g_screenSize = 0x4020;		// Store width (64) in two upper nibbles and height (32) in the two lower nibbles
 
 /**
     Initialize SDL for Chip8 emulator
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 {
     if (auto data = std::make_unique<Interpreter>())
     {
-        if (InitializeSDL("Chip8", 640, 320) && argc == 2 && data->Initialize(argv[1], screenSize))
+        if (InitializeSDL("Chip8", 640, 320) && /*argc == 2 &&*/ data->Initialize("../../rom/test_opcode.ch8"/*argv[1]*/, g_screenSize))
         {
             uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
 			while (!g_quit)
@@ -60,6 +60,7 @@ int main(int argc, char** argv)
 
 				SDL_LockSurface(g_pSurface);
 				std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
+
 				SDL_UnlockSurface(g_pSurface);
 
 				SDL_UpdateWindowSurface(g_pWindow);
@@ -125,17 +126,8 @@ void HandleInput()
  */
 void ShutdownSDL()
 {
-    if (g_pSurface != nullptr)
-    {
-        SDL_FreeSurface(g_pSurface);
-        g_pSurface = nullptr;
-    };
-    
-    if (g_pWindow != nullptr)
-    {
-        SDL_DestroyWindow(g_pWindow);
-        g_pWindow = nullptr;
-    };
+	SDL_FreeSurface(g_pSurface);
+	SDL_DestroyWindow(g_pWindow);
     
     SDL_Quit();
 };
