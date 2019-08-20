@@ -6,7 +6,7 @@
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_I(0x000), m_screenSize(0x0000)
+Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_screenSize(0x0000), m_I(0x000)
 {
     /**
         Initialize the screen buffer
@@ -37,7 +37,7 @@ Interpreter::~Interpreter()
  */
 bool Interpreter::Initialize(const char* filePath, uint16_t screenSize)
 {
-	m_screenSize = m_screenSize;
+	m_screenSize = screenSize;
 
     if (!InitializeEmulatorRAM())
     {
@@ -69,34 +69,37 @@ void Interpreter::Run()
     uint16_t pc = m_programCounter + CHIP8_INSTRUCTION_SIZE;
     
     switch (opcode & 0xF000) {
+            
         case 0x000:
-            // Execute SYS addr
-
-			/**
-				0x0000
-					Clear display.
-			*/
-			if ((opcode & 0x000F) == 0x0000)
-			{
-				uint16_t pixels = GetEmulatorWidth() * GetEmulatorHeight();
-				std::fill(
-					m_pScreenBuffer.get(),
-					m_pScreenBuffer.get() + pixels,
-					0x00);
-			};
             
-            /**
-                0x00EE
-                    return from a subroutine.
-             */
-            if (opcode == 0x00EE)
+            switch (opcode & 0x000F)
             {
-                pc = m_stack[m_stackPointer];
-                m_stackPointer--;
+                    
+                /**
+                    0x0000
+                        Clear the display.
+                */
+                case 0x0000:
+                {
+                    uint16_t pixels = GetEmulatorWidth() * GetEmulatorHeight();
+                    std::fill(
+                              m_pScreenBuffer.get(),
+                              m_pScreenBuffer.get() + pixels,
+                              0x00);
+                }
+                    break;
+                    
+                /**
+                    0x000E
+                        Return from subroutine.
+                */
+                case 0x000E:
+                    pc = m_stack[m_stackPointer] + CHIP8_INSTRUCTION_SIZE;
+                    m_stackPointer--;
+                    break;
             };
-            
             break;
-            
+
 			/**
 				1nnn:
 					Jump to location nnn.
@@ -180,9 +183,40 @@ void Interpreter::Run()
 					Display n-byte sprite starting at location of I
 					x - positionX from Vx
 					y - positionY from Vy
-					n - read n bytes from memory
+					n - read n bytes from memory also used as height
 			 */
 		case 0xD000:
+        {
+            uint16_t posX = m_registerV[(opcode & 0x0F00) >> 8];
+            uint16_t posY = m_registerV[(opcode & 0x00F0) >> 4];
+            uint16_t width = GetEmulatorWidth();
+            uint16_t height = opcode & 0x000F;
+            uint16_t pixel;
+            
+            // Set register 15 (0x0F) to 0 for no collision detected.
+            m_registerV[0x0F] = 0;
+            for(uint16_t y = 0; y < height; y++)
+            {
+                
+                // Get start address
+                pixel = m_memory[m_I + y];
+                for(uint16_t x = 0; x < 8; x++)     // 8-bits is the maximum width of a sprite
+                {
+                    
+                    if((pixel & (0x80 >> x)) != 0)
+                    {
+                        
+                        // Did we collide with something?
+                        if(m_pScreenBuffer[(posX + x + ((posY + y) * width))] == 1)
+                        {
+                            m_registerV[0x0F] = 0x01;
+                        };
+                        
+                        m_pScreenBuffer[posX + x + ((posY + y) * width)] ^= 1;
+                    };
+                };
+            };
+        }
             break;
 
 			/**
@@ -217,6 +251,29 @@ void Interpreter::Run()
 };
 
 /**
+    Draw pixels to the screen
+ 
+    @param[in] pixel An array of all pixels available on the screen passed.
+    @param[in] windowWidth Width of the window
+    @param[in] windowHeight Height of the window
+ */
+void Interpreter::Draw(uint32_t* pScreen, uint32_t windowWidth, uint32_t windowHeight)
+{
+    // Get screen width.
+    uint16_t screenWidth = GetEmulatorWidth();
+    
+    for(uint16_t y = 0; y < windowHeight; y++)
+    {
+        for(uint16_t x = 0; x < windowWidth; x++)
+        {
+            // Since the window is 10 times bigger than the emulators
+            // screen we divide x and y values by to more accuratly map them.
+            pScreen[x + (windowWidth * y)] = m_pScreenBuffer[(x / 10) + (y / 10) * screenWidth] ? 0xFFFFFFFF : 0x00000000;
+        };
+    };
+};
+
+/**
     Allocates 4096 KB to emulate Chip8's amount of RAM and the screen buffer
  
     @param[in] windowWidth The width of the window
@@ -228,8 +285,11 @@ bool Interpreter::InitializeEmulatorRAM()
 {
     m_memory.fill(0x00);
     
-	uint16_t pixels = (static_cast<uint16_t>(m_screenSize) >> 8) *		// Retrieve the two higher nibbles for the width
-						(0x00FF & static_cast<uint16_t>(m_screenSize));	// Multiply the two retrieved higher nibbles with the two lower to get the resolution of the Chip8 screen.
+    //  Retrieve the two higher nibbles for the width then multiply
+    //  the two retrieved higher nibbles with the two lower to get
+    //  the resolution of the Chip8 screen.
+     
+	uint16_t pixels = (static_cast<uint16_t>(m_screenSize) >> 8) * (0x00FF & static_cast<uint16_t>(m_screenSize));
     m_pScreenBuffer.reset(new uint8_t[pixels]);
     std::fill(
               m_pScreenBuffer.get(),

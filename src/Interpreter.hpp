@@ -29,6 +29,8 @@ class Interpreter
     
         bool Initialize(const char* filePath, uint16_t screenSize);
         void Run();
+    
+        void Draw(uint32_t* screen, uint32_t windowWidth, uint32_t windowHeight);
 
     private:
     

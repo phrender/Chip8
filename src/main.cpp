@@ -59,8 +59,10 @@ int main(int argc, char** argv)
 				HandleInput();
 
 				SDL_LockSurface(g_pSurface);
-				std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
+                std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
 
+                data->Draw(pScreen, 640, 320);
+                
 				SDL_UnlockSurface(g_pSurface);
 
 				SDL_UpdateWindowSurface(g_pWindow);
@@ -109,16 +111,15 @@ void HandleInput()
 {
     SDL_Event e;
     
-    while (SDL_PollEvent(&e) != 0) {
-        switch (e.type) {
+    while (SDL_PollEvent(&e) != 0)
+    {
+        switch (e.type)
+        {
             case SDL_QUIT:
                 g_quit = true;
                 break;
-                
-            default:
-                break;
-        }
-    }
+        };
+    };
 };
 
 /**
@@ -126,8 +127,16 @@ void HandleInput()
  */
 void ShutdownSDL()
 {
-	SDL_FreeSurface(g_pSurface);
-	SDL_DestroyWindow(g_pWindow);
+    if (g_pSurface)
+    {
+        SDL_FreeSurface(g_pSurface);
+    };
+    
+    if (g_pWindow)
+    {
+        SDL_DestroyWindow(g_pWindow);
+        g_pWindow = nullptr;
+    };
     
     SDL_Quit();
 };
