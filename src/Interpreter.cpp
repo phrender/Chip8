@@ -225,23 +225,24 @@ void Interpreter::Run()
 			*/
 		case 0xE000:
 			
-			/**
-				Ex9E
-					Skip next instruction if the key with value Vx is pressed.
-			*/
-			if ((opcode & 0x00FF) == 0x009E)
+			switch (opcode & 0x00FF)
 			{
-				// TODO: Handle input
-			}
+					/**
+						Ex9E
+							Skip next instruction if the key with value Vx is pressed.
+					*/
+				case 0x009E:
+					// TODO: Handle key press.
+					break;
 
-			/**
-				ExA1
-					Skip the next instruction if the key with value Vx is released.
-			*/
-			else if ((opcode & 0x00FF) == 0x00A1)
-			{
-				// TODO: Handle input
-			};
+					/**
+						ExA1
+							Skip the next instruction if the key with value Vx is released.
+					*/
+				case 0x00A1:
+					// TODO: Handle key release.
+					break;
+			}
 			break;
             
             /**
