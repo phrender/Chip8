@@ -25,9 +25,15 @@ SDL_Surface* g_pSurface = nullptr;
 bool g_quit = false;
 
 /**
-	uint16_t to store screen width and height
+	uint16_t to store screen width and height.
+	Store width (64) in two upper nibbles and height (32) in the two lower nibbles.
 */
-constexpr uint16_t g_screenSize = 0x4020;		// Store width (64) in two upper nibbles and height (32) in the two lower nibbles
+constexpr uint16_t g_screenSize = 0x4020;
+
+/**
+ * Key map.
+ */
+std::array<uint8_t, CHIP8_KEYBOARD_SIZE> g_keyMap;
 
 /**
     Initialize SDL for Chip8 emulator
@@ -54,7 +60,9 @@ int main(int argc, char** argv)
 {
     if (auto data = std::make_unique<Interpreter>())
     {
-        if (InitializeSDL("Chip8", 640, 320) && argc == 2 && data->Initialize(argv[1], g_screenSize))
+        if (InitializeSDL("Chip8", 640, 320) &&
+            //argc == &&
+            data->Initialize("../../../rom/Breakout.ch8"/*argv[1]*/, g_screenSize))
         {
             uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
 			while (!g_quit)
@@ -83,7 +91,7 @@ int main(int argc, char** argv)
 
 bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t windowHeight)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
     {
         printf("Unable to initialize SDL: %s\n", SDL_GetError());
         return false;
@@ -104,6 +112,13 @@ bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t
     }
     
     g_pSurface = SDL_GetWindowSurface(g_pWindow);
+
+	g_keyMap = {
+		SDLK_1, SDLK_2, SDLK_3, SDLK_4,		// 1, 2, 3, D
+		SDLK_q, SDLK_w, SDLK_e, SDLK_r,		// 4, 5, 6, E
+		SDLK_a, SDLK_s, SDLK_d, SDLK_f,		// 7, 8, 9, F
+		SDLK_z, SDLK_x, SDLK_c, SDLK_v		// A, 0, B, C
+	};
     
     return true;
 };
@@ -121,6 +136,12 @@ void HandleInput()
         {
             case SDL_QUIT:
                 g_quit = true;
+                break;
+                
+            case SDL_KEYDOWN:
+                break;
+                
+            case SDL_KEYUP:
                 break;
         };
     };

@@ -244,6 +244,46 @@ void Interpreter::Run()
 			};
 			break;
             
+            /**
+                FxII
+                    Two last nibbles are used to determine which instruction to use.
+             */
+        case 0xF000:
+            
+            switch (opcode & 0x00FF)
+            {
+                    /**
+                        Fx0A
+                            Wait for a key press and then store it in register Vx.
+                     */
+                case 0x000A:
+                {
+                    // A check for if we've pressed a key.
+                    bool isKeyPressed = false;
+                    
+                    // Look for the pressed key.
+                    for (int i = 0; i < CHIP8_KEYBOARD_SIZE; i++)
+                    {
+                        // Check if the key is pressed.
+                        if (m_keyboard[i] != 0)
+                        {
+                            // Store in register Vx
+                            m_registerV[(opcode & 0x0F00) >> 8] = i;
+                            isKeyPressed = true; // Say that we've pressed the key.
+                        };
+                    };
+                    
+                    // Break the loop until we've pressed a key.
+                    if (!isKeyPressed)
+                    {
+                        return;
+                    };
+                };
+                    break;
+            };
+            
+            break;
+            
         default:
             break;
     }
@@ -273,6 +313,14 @@ void Interpreter::Draw(uint32_t* pScreen, uint32_t windowWidth, uint32_t windowH
     };
 };
 
+void Interpreter::OnKeyPressed()
+{
+};
+
+void Interpreter::OnKeyReleased()
+{
+};
+
 /**
     Allocates 4096 KB to emulate Chip8's amount of RAM and the screen buffer
  
@@ -297,6 +345,12 @@ bool Interpreter::InitializeEmulatorRAM()
               0x00);
     
     return !m_memory.empty() && m_pScreenBuffer != nullptr;
+};
+
+bool Interpreter::InitializeEmulatorKeyboard()
+{
+    m_keyboard.fill(0x00);
+    return true;
 };
 
 /**

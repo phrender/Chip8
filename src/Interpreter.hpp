@@ -31,10 +31,14 @@ class Interpreter
         void Run();
     
         void Draw(uint32_t* screen, uint32_t windowWidth, uint32_t windowHeight);
+    
+        void OnKeyPressed();
+        void OnKeyReleased();
 
     private:
     
         bool InitializeEmulatorRAM();
+        bool InitializeEmulatorKeyboard();
         bool InitializeFontset();
         bool OpenAndLoadFile(const char* filePath);
 
@@ -43,12 +47,16 @@ class Interpreter
     
 	private:
 
+        /** Delay timer */
+        uint8_t m_delayTimer;
         /** Holds the current position of the stack*/
         int8_t m_stackPointer;
 		/** Holds the screen size (ex. 0x4020 = 64*32) */
 		uint16_t m_screenSize;
         /** Emulator RAM */
         std::array<uint8_t, CHIP8_RAM_SIZE> m_memory;
+        /** Emulator keyboard */
+        std::array<uint8_t, CHIP8_KEYBOARD_SIZE> m_keyboard;
         /** Emulator program counter, starts at byte 512 */
         uint16_t m_programCounter;
         /** Emulator Index Register */
