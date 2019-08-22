@@ -1,3 +1,7 @@
+/*! \file
+		Entry point for Chip8 Emulator
+ */
+
 #include <fstream>
 #include <memory>
 #include "Interpreter.hpp"
