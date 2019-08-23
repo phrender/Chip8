@@ -146,6 +146,12 @@ void HandleInput()
                 
             case SDL_KEYDOWN:
                 
+                if (e.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    g_quit = true;
+                    break;
+                };
+                
                 for (uint8_t keyIndex = 0; keyIndex < g_keyboardMap.size(); keyIndex++)
                 {
                     if (e.key.keysym.sym == g_keyboardMap[keyIndex])

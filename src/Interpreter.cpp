@@ -7,7 +7,7 @@
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_stackPointer(0xFF), m_screenSize(0x0000), m_programCounter(0x0200), m_I(0x0000)
+Interpreter::Interpreter() : m_delayTimer(0x00), m_stackPointer(0xFF), m_screenSize(0x0000), m_programCounter(0x0200), m_I(0x0000)
 {
     /**
         Initialize the screen buffer
@@ -240,6 +240,7 @@ void Interpreter::Run()
 					*/
 				case 0x009E:
                     // TODO: TODO: Handle key press.
+                    printf("Button: %X pressed.\n", m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]]);
 					break;
 
 					/**
@@ -248,6 +249,7 @@ void Interpreter::Run()
 					*/
 				case 0x00A1:
                     // TODO: Handle key release.
+                    //printf("Button: %X released.\n", m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]]);
 					break;
 			}
 			break;
@@ -260,6 +262,15 @@ void Interpreter::Run()
             
             switch (opcode & 0x00FF)
             {
+                    
+                    /**
+                        Fx007
+                            Store delay timer in register Vx.
+                     */
+                case 0x0007:
+                    m_registerV[(opcode & 0x0F00) >> 8] = m_delayTimer;
+                    break;
+                    
                     /**
                         Fx0A
                             Wait for a key press and then store it in register Vx.
@@ -287,6 +298,50 @@ void Interpreter::Run()
                         return;
                     };
                 };
+                    break;
+                    
+                    /**
+                        Fx15
+                            Set delay timer to x.
+                     */
+                case 0x0015:
+                    m_delayTimer = ((opcode & 0x0F00) >> 8);
+                    break;
+                    
+                    /**
+                        Fx29
+                            Set I to corresponding sprite for digit at Vx.
+                     */
+                case 0x0029:
+                    // Multiply value by five (5) since a font sprite has a length of five (5).
+                    m_I = m_registerV[(opcode & 0x0F00) >> 8] * 5;
+                    break;
+                    
+                    /**
+                        Fx33
+                            Store the BCD (Binary Coded Decimal) of Vx in memory location starting at I.\n
+                            I = one hundredth digit of Vx \n
+                            I + 1 = one tenth digit of Vx \n
+                            I + 2 = one digit of Vx \n
+                     */
+                case 0x0033:
+                {
+                    uint16_t value = m_registerV[(opcode & 0x0F00) >> 8];
+                    m_memory[m_I] = (value / 100) % 10;
+                    m_memory[m_I + 1] = (value / 10) % 10;
+                    m_memory[m_I + 2] = value % 10;
+                }
+                    break;
+                    
+                    /**
+                        Fx65
+                            Reads registers V0 to Vx from memory starting at I.
+                     */
+                case 0x0065:
+                    for (int i = 0; i < ((opcode & 0x0F00) >> 8); i++)
+                    {
+                        m_registerV[i] = m_memory[m_I + i];
+                    };
                     break;
             };
             
