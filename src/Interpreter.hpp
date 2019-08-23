@@ -32,8 +32,8 @@ class Interpreter
     
         void Draw(uint32_t* screen, uint32_t windowWidth, uint32_t windowHeight);
     
-        void OnKeyPressed();
-        void OnKeyReleased();
+        void OnKeyPressed(uint8_t keycode);
+        void OnKeyReleased(uint8_t keycode);
 
     private:
     

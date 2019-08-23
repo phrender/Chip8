@@ -31,9 +31,9 @@ bool g_quit = false;
 constexpr uint16_t g_screenSize = 0x4020;
 
 /**
- * Key map.
+    Emulator interpreter pointer.
  */
-std::array<uint8_t, CHIP8_KEYBOARD_SIZE> g_keyMap;
+std::unique_ptr<Interpreter> g_pInterpreter = nullptr;
 
 /**
     Initialize SDL for Chip8 emulator
@@ -58,22 +58,23 @@ void ShutdownSDL();
 
 int main(int argc, char** argv)
 {
-    if (auto data = std::make_unique<Interpreter>())
+    if (g_pInterpreter = std::make_unique<Interpreter>())
     {
         if (InitializeSDL("Chip8", 640, 320) &&
             //argc == &&
-            data->Initialize("../../../rom/Breakout.ch8"/*argv[1]*/, g_screenSize))
+            g_pInterpreter != nullptr &&
+            g_pInterpreter->Initialize("../../../rom/Breakout.ch8"/*argv[1]*/, g_screenSize))
         {
             uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
 			while (!g_quit)
 			{
-				data->Run();
+				g_pInterpreter->Run();
 				HandleInput();
 
 				SDL_LockSurface(g_pSurface);
                 std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
 
-                data->Draw(pScreen, 640, 320);
+                g_pInterpreter->Draw(pScreen, 640, 320);
                 
 				SDL_UnlockSurface(g_pSurface);
 
@@ -112,13 +113,6 @@ bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t
     }
     
     g_pSurface = SDL_GetWindowSurface(g_pWindow);
-
-	g_keyMap = {
-		SDLK_1, SDLK_2, SDLK_3, SDLK_4,		// 1, 2, 3, D
-		SDLK_q, SDLK_w, SDLK_e, SDLK_r,		// 4, 5, 6, E
-		SDLK_a, SDLK_s, SDLK_d, SDLK_f,		// 7, 8, 9, F
-		SDLK_z, SDLK_x, SDLK_c, SDLK_v		// A, 0, B, C
-	};
     
     return true;
 };
@@ -139,9 +133,20 @@ void HandleInput()
                 break;
                 
             case SDL_KEYDOWN:
+                
+                switch (e.key.keysym.sym) {
+                    case SDLK_1:
+                        g_pInterpreter->OnKeyPressed(0x01);
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
                 break;
                 
             case SDL_KEYUP:
+                g_pInterpreter->OnKeyReleased(e.key.keysym.sym);
                 break;
         };
     };

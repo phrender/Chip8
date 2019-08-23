@@ -1,4 +1,5 @@
 #include <string>
+#include <SDL_keycode.h>
 #include "Interpreter.hpp"
 
 #define GetRegister(opcode) ( (opcode & 0x0F00) >> 8 )
@@ -314,12 +315,26 @@ void Interpreter::Draw(uint32_t* pScreen, uint32_t windowWidth, uint32_t windowH
     };
 };
 
-void Interpreter::OnKeyPressed()
+void Interpreter::OnKeyPressed(uint8_t keycode)
 {
+    for (auto key : m_keyboard)
+    {
+        if (key == keycode)
+        {
+            key = 0x01;
+        };
+    };
 };
 
-void Interpreter::OnKeyReleased()
+void Interpreter::OnKeyReleased(uint8_t keycode)
 {
+    for (auto key : m_keyboard)
+    {
+        if (key == keycode)
+        {
+            key = 0x00;
+        };
+    };
 };
 
 /**
@@ -350,7 +365,13 @@ bool Interpreter::InitializeEmulatorRAM()
 
 bool Interpreter::InitializeEmulatorKeyboard()
 {
-    m_keyboard.fill(0x00);
+    m_keyboard =
+    {
+        0x01, 0x02, 0x03, 0x0C,
+        0x04, 0x05, 0x06, 0x0D,
+        0x07, 0x08, 0x09, 0x0E
+        0x0A, 0x00, 0x0B, 0x0F
+    };
     return true;
 };
 
