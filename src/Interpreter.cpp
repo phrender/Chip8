@@ -239,8 +239,7 @@ void Interpreter::Run()
 							Skip next instruction if the key with value Vx is pressed.
 					*/
 				case 0x009E:
-                    // TODO: TODO: Handle key press.
-                    printf("Button: %X pressed.\n", m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]]);
+                    pc += m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]] != 0 ? CHIP8_INSTRUCTION_SIZE : 0;
 					break;
 
 					/**
@@ -248,8 +247,7 @@ void Interpreter::Run()
 							Skip the next instruction if the key with value Vx is released.
 					*/
 				case 0x00A1:
-                    // TODO: Handle key release.
-                    //printf("Button: %X released.\n", m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]]);
+                    pc += m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]] == 0 ? CHIP8_INSTRUCTION_SIZE : 0;
 					break;
 			}
 			break;
@@ -284,7 +282,7 @@ void Interpreter::Run()
                     for (int i = 0; i < CHIP8_KEYBOARD_SIZE; i++)
                     {
                         // Check if the key is pressed.
-                        if (m_keyboard[i] != 0)
+                        if (m_keyboard[i] == 0x01)
                         {
                             // Store in register Vxz®
                             m_registerV[(opcode & 0x0F00) >> 8] = i;
