@@ -36,6 +36,11 @@ constexpr uint16_t g_screenSize = 0x4020;
 std::unique_ptr<Interpreter> g_pInterpreter = nullptr;
 
 /**
+    Emulator key map.
+ */
+std::array<uint8_t, CHIP8_KEYBOARD_SIZE> g_keyboardMap = {};
+
+/**
     Initialize SDL for Chip8 emulator
 
     @param[in] windowName  nameof the window as a std::string
@@ -58,32 +63,31 @@ void ShutdownSDL();
 
 int main(int argc, char** argv)
 {
-    if (g_pInterpreter = std::make_unique<Interpreter>())
+    g_pInterpreter = std::make_unique<Interpreter>();
+    
+    if (InitializeSDL("Chip8", 640, 320) &&
+        argc == 2 &&
+        g_pInterpreter != nullptr &&
+        g_pInterpreter->Initialize(argv[1], g_screenSize))
     {
-        if (InitializeSDL("Chip8", 640, 320) &&
-            //argc == &&
-            g_pInterpreter != nullptr &&
-            g_pInterpreter->Initialize("../../../rom/Breakout.ch8"/*argv[1]*/, g_screenSize))
+        uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
+        while (!g_quit)
         {
-            uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
-			while (!g_quit)
-			{
-				g_pInterpreter->Run();
-				HandleInput();
+            g_pInterpreter->Run();
+            HandleInput();
 
-				SDL_LockSurface(g_pSurface);
-                std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
-
-                g_pInterpreter->Draw(pScreen, 640, 320);
-                
-				SDL_UnlockSurface(g_pSurface);
-
-				SDL_UpdateWindowSurface(g_pWindow);
-			};
-            ShutdownSDL();
+            SDL_LockSurface(g_pSurface);
+            std::memset(pScreen, 0x00000000, (g_pSurface->w * g_pSurface->h * sizeof(uint32_t)));
             
-            return 0;
+            g_pInterpreter->Draw(pScreen, 640, 320);
+                
+            SDL_UnlockSurface(g_pSurface);
+
+            SDL_UpdateWindowSurface(g_pWindow);
         };
+        ShutdownSDL();
+            
+        return 0;
     };
     
     printf("Failed to initialize Chip8 Emulator!\n");
@@ -114,6 +118,14 @@ bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t
     
     g_pSurface = SDL_GetWindowSurface(g_pWindow);
     
+    g_keyboardMap =
+    {
+        SDLK_x, SDLK_1, SDLK_2, SDLK_3,     // 1, 2, 3, C
+        SDLK_q, SDLK_w, SDLK_e, SDLK_a,     // 4, 5, 6, D
+        SDLK_s, SDLK_d, SDLK_z, SDLK_c,     // 7, 8, 9, E
+        SDLK_4, SDLK_r, SDLK_f, SDLK_v      // A, 0, B, F
+    };
+    
     return true;
 };
 
@@ -134,19 +146,24 @@ void HandleInput()
                 
             case SDL_KEYDOWN:
                 
-                switch (e.key.keysym.sym) {
-                    case SDLK_1:
-                        g_pInterpreter->OnKeyPressed(0x01);
-                        break;
-                        
-                    default:
-                        break;
-                }
+                for (uint8_t keyIndex = 0; keyIndex < g_keyboardMap.size(); keyIndex++)
+                {
+                    if (e.key.keysym.sym == g_keyboardMap[keyIndex])
+                    {
+                        g_pInterpreter->OnKeyPressed(keyIndex);
+                    };
+                };
                 
                 break;
                 
             case SDL_KEYUP:
-                g_pInterpreter->OnKeyReleased(e.key.keysym.sym);
+                for (uint8_t keyIndex = 0; keyIndex < g_keyboardMap.size(); keyIndex++)
+                {
+                    if (e.key.keysym.sym == g_keyboardMap[keyIndex])
+                    {
+                        g_pInterpreter->OnKeyReleased(keyIndex);
+                    };
+                };
                 break;
         };
     };

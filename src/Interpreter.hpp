@@ -30,10 +30,10 @@ class Interpreter
         bool Initialize(const char* filePath, uint16_t screenSize);
         void Run();
     
-        void Draw(uint32_t* screen, uint32_t windowWidth, uint32_t windowHeight);
+        void Draw(uint32_t* pScreen, uint32_t windowWidth, uint32_t windowHeight);
     
-        void OnKeyPressed(uint8_t keycode);
-        void OnKeyReleased(uint8_t keycode);
+        void OnKeyPressed(uint8_t keyIndex);
+        void OnKeyReleased(uint8_t keyIndex);
 
     private:
     
@@ -48,7 +48,7 @@ class Interpreter
 	private:
 
         /** Delay timer */
-        uint8_t m_delayTimer;
+        //uint8_t m_delayTimer;
         /** Holds the current position of the stack*/
         int8_t m_stackPointer;
 		/** Holds the screen size (ex. 0x4020 = 64*32) */

@@ -7,7 +7,7 @@
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_stackPointer(0xFF), m_programCounter(0x200), m_screenSize(0x0000), m_I(0x000)
+Interpreter::Interpreter() : m_stackPointer(0xFF), m_screenSize(0x0000), m_programCounter(0x0200), m_I(0x0000)
 {
     /**
         Initialize the screen buffer
@@ -43,6 +43,12 @@ bool Interpreter::Initialize(const char* filePath, uint16_t screenSize)
     if (!InitializeEmulatorRAM())
     {
         printf("Error: Failed to allocate RAM for Chip8!\n");
+        return false;
+    };
+    
+    if (!InitializeEmulatorKeyboard())
+    {
+        printf("Error: Failed to initialize keyboard for Chip8!\n");
         return false;
     };
     
@@ -233,7 +239,7 @@ void Interpreter::Run()
 							Skip next instruction if the key with value Vx is pressed.
 					*/
 				case 0x009E:
-					// TODO: Handle key press.
+                    // TODO: TODO: Handle key press.
 					break;
 
 					/**
@@ -241,7 +247,7 @@ void Interpreter::Run()
 							Skip the next instruction if the key with value Vx is released.
 					*/
 				case 0x00A1:
-					// TODO: Handle key release.
+                    // TODO: Handle key release.
 					break;
 			}
 			break;
@@ -269,7 +275,7 @@ void Interpreter::Run()
                         // Check if the key is pressed.
                         if (m_keyboard[i] != 0)
                         {
-                            // Store in register Vx
+                            // Store in register Vxz®
                             m_registerV[(opcode & 0x0F00) >> 8] = i;
                             isKeyPressed = true; // Say that we've pressed the key.
                         };
@@ -315,26 +321,14 @@ void Interpreter::Draw(uint32_t* pScreen, uint32_t windowWidth, uint32_t windowH
     };
 };
 
-void Interpreter::OnKeyPressed(uint8_t keycode)
+void Interpreter::OnKeyPressed(uint8_t keyIndex)
 {
-    for (auto key : m_keyboard)
-    {
-        if (key == keycode)
-        {
-            key = 0x01;
-        };
-    };
+    m_keyboard[keyIndex] = 0x01;
 };
 
-void Interpreter::OnKeyReleased(uint8_t keycode)
+void Interpreter::OnKeyReleased(uint8_t keyIndex)
 {
-    for (auto key : m_keyboard)
-    {
-        if (key == keycode)
-        {
-            key = 0x00;
-        };
-    };
+    m_keyboard[keyIndex] = 0x00;
 };
 
 /**
@@ -365,13 +359,7 @@ bool Interpreter::InitializeEmulatorRAM()
 
 bool Interpreter::InitializeEmulatorKeyboard()
 {
-    m_keyboard =
-    {
-        0x01, 0x02, 0x03, 0x0C,
-        0x04, 0x05, 0x06, 0x0D,
-        0x07, 0x08, 0x09, 0x0E,
-        0x0A, 0x00, 0x0B, 0x0F
-    };
+    m_keyboard.fill(0x00);
     return true;
 };
 
