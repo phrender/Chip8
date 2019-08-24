@@ -188,11 +188,11 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xy3
-                            Set register Vx XOR Vy
+                        8xy1
+                            Set register Vx to Vx OR (|) Vy
                      */
-                case 0x0003:
-                    m_registerV[(opcode & 0x0F00) >> 8] ^= m_registerV[(opcode & 0x00F0) >> 4];
+                case 0x0001:
+                    m_registerV[(opcode & 0x0F00) >> 8] |= m_registerV[(opcode & 0x00F0) >> 4];
                     break;
                     
                     /**
@@ -201,6 +201,14 @@ void Interpreter::Run()
                      */
                 case 0x0002:
                     m_registerV[(opcode & 0x0F00) >> 8] &= m_registerV[(opcode & 0x00F0) >> 4];
+                    break;
+                    
+                    /**
+                     8xy3
+                     Set register Vx XOR Vy
+                     */
+                case 0x0003:
+                    m_registerV[(opcode & 0x0F00) >> 8] ^= m_registerV[(opcode & 0x00F0) >> 4];
                     break;
                     
                     /**
@@ -220,12 +228,39 @@ void Interpreter::Run()
                             VF is set to NOT borrow
                      */
                 case 0x0005:
-                    m_registerV[0x0F] = m_registerV[(opcode & 0x00F0) >> 4] > m_registerV[(opcode & 0x0F00) >> 8] ? 0x00 : 0x01;
+                    m_registerV[0x0F] = m_registerV[(opcode & 0x0F00) >> 8] > m_registerV[(opcode & 0x00F0) >> 4] ? 0x01 : 0x00;
                     m_registerV[(opcode & 0x0F00) >> 8] -= m_registerV[(opcode & 0x00F0) >> 4];
                     break;
                     
-                default:
-                    printf("Hello\n");
+                    /**
+                        8xy6
+                            If the last bit of Vx is 1 set VF  to 1, otherwise 0.
+                            Divide register Vx by two.
+                     */
+                case 0x0006:
+                    m_registerV[0x0F] = m_registerV[(opcode & 0x0F00) >> 8] & 0x01;
+                    m_registerV[(opcode & 0x0F00) >> 8] >>= 1;
+                    break;
+                    
+                    /**
+                        8xy7
+                            Set register Vx to Vx - Vy.
+                            If Vy is greater than Vx set VF to 1, otherwise 0.
+                            Register VF is set to NOT BORROW.
+                     */
+                case 0x0007:
+                    m_registerV[0x0F] = m_registerV[(opcode & 0x00F0) >> 4] > m_registerV[(0x0F00) >> 8] ? 0x01 : 0x00;
+                    m_registerV[(opcode & 0x0F00) >> 8] = m_registerV[(opcode & 0x00F0) >> 4] - m_registerV[(opcode & 0x0F00) >> 8];
+                    break;
+                    
+                    /**
+                        8xyE
+                            Check if most-significant bit is 1, if so set VF to 1 otherwise 0.
+                            Multiply register Vx by 2.
+                     */
+                case 0x000E:
+                    m_registerV[0x0F] = m_registerV[(opcode & 0x0F00) >> 8] & 0x80 ? 0x01 : 0x00;
+                    m_registerV[(opcode & 0x0F00) >> 8] <<= 1;
                     break;
             }
             
@@ -248,8 +283,12 @@ void Interpreter::Run()
 			m_I = opcode & 0x0FFF;
 			break;
             
+            /**
+                Bnnn
+                    Set program counter to nnn + value of register V0.
+             */
         case 0xB000:
-            printf("0xB000 opcode: 0x%X\n", opcode);
+            pc = (opcode & 0x0FFF) + m_registerV[0x00];
             break;
             
             /**
@@ -257,11 +296,7 @@ void Interpreter::Run()
                     Set Vx to random byte AND kk
              */
         case 0xC000:
-        {
-            uint16_t rand = (std::rand() % 255) + 1;
-            uint8_t op = opcode & 0x00FF;
-            m_registerV[(opcode & 0x0F00) >> 8] = rand + op;
-        }
+            m_registerV[(opcode & 0x0F00) >> 8] = (std::rand() % 255) + (opcode & 0x00FF);
             break;
 
 			/**
@@ -421,12 +456,8 @@ void Interpreter::Run()
                     };
                     break;
             };
-            
             break;
-            
-        default:
-            break;
-    }
+    };
     m_programCounter = pc;
 };
 
