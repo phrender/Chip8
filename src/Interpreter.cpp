@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <ctime>
 #include <string>
 #include <SDL_keycode.h>
 #include "Interpreter.hpp"
@@ -21,6 +23,9 @@ Interpreter::Interpreter() : m_delayTimer(0x00), m_stackPointer(0xFF), m_screenS
 	m_registerV.fill(0x00);
 	m_fontset.fill(0x00);
 	m_stack.fill(0x0000);
+    
+    // Initializr std::rand()
+    std::srand(std::time(nullptr));
 };
 
 /**
@@ -165,7 +170,65 @@ void Interpreter::Run()
 			m_registerV[GetRegister(opcode)] += (opcode & 0x00FF);
 			break;
 
+            /**
+                8xyn
+                    n determines which opcode we should use.
+             */
 		case 0x8000:
+            
+            switch (opcode & 0x000F)
+            {
+                    
+                    /**
+                        8xy0
+                            Set register Vx to Vy
+                     */
+                case 0x0000:
+                    m_registerV[(opcode & 0x0F00) >> 8] = m_registerV[(opcode & 0x00F0) >> 4];
+                    break;
+                    
+                    /**
+                        8xy3
+                            Set register Vx XOR Vy
+                     */
+                case 0x0003:
+                    m_registerV[(opcode & 0x0F00) >> 8] ^= m_registerV[(opcode & 0x00F0) >> 4];
+                    break;
+                    
+                    /**
+                        8xy2
+                            Set register Vx to Vx AND (&) Vy
+                     */
+                case 0x0002:
+                    m_registerV[(opcode & 0x0F00) >> 8] &= m_registerV[(opcode & 0x00F0) >> 4];
+                    break;
+                    
+                    /**
+                        8xy4
+                            Set register Vx to Vx + Vy.
+                            VF is set to carry
+                            Set register VF to carry (Vx + Vy > 255, carry is equal to 1 otherwise 0)
+                     */
+                case 0x0004:
+                    m_registerV[(opcode & 0x0F00) >> 8] += m_registerV[(opcode & 0x00F0) >> 4];
+                    m_registerV[0x0F] = m_registerV[(0x00F0) >> 4] > (0xFF - m_registerV[(0x0F00 & opcode) >> 8]);
+                    break;
+                
+                    /**
+                        8xy5
+                            Set register Vx to Vx - Vy
+                            VF is set to NOT borrow
+                     */
+                case 0x0005:
+                    m_registerV[0x0F] = m_registerV[(opcode & 0x00F0) >> 4] > m_registerV[(opcode & 0x0F00) >> 8] ? 0x00 : 0x01;
+                    m_registerV[(opcode & 0x0F00) >> 8] -= m_registerV[(opcode & 0x00F0) >> 4];
+                    break;
+                    
+                default:
+                    printf("Hello\n");
+                    break;
+            }
+            
 			break;
 
 			/**
@@ -184,6 +247,22 @@ void Interpreter::Run()
 		case 0xA000:
 			m_I = opcode & 0x0FFF;
 			break;
+            
+        case 0xB000:
+            printf("0xB000 opcode: 0x%X\n", opcode);
+            break;
+            
+            /**
+                Cxkk
+                    Set Vx to random byte AND kk
+             */
+        case 0xC000:
+        {
+            uint16_t rand = (std::rand() % 255) + 1;
+            uint8_t op = opcode & 0x00FF;
+            m_registerV[(opcode & 0x0F00) >> 8] = rand + op;
+        }
+            break;
 
 			/**
 				Dxyn
