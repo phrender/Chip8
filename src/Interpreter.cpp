@@ -459,6 +459,13 @@ void Interpreter::Run()
             break;
     };
     m_programCounter = pc;
+    
+    // Subtract one from the delay timer.
+    // (Should be at a rate of 1 per 60Hz)
+    if (m_delayTimer > 0)
+    {
+        --m_delayTimer;
+    };
 };
 
 /**
