@@ -9,7 +9,7 @@
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_delayTimer(0x00), m_stackPointer(0xFF), m_screenSize(0x0000), m_programCounter(0x0200), m_I(0x0000)
+Interpreter::Interpreter() : m_delayTimer(0x00), m_soundTimer(0x00), m_stackPointer(0xFF), m_screenSize(0x0000), m_programCounter(0x0200), m_I(0x0000)
 {
     /**
         Initialize the screen buffer
@@ -421,6 +421,22 @@ void Interpreter::Run()
                     break;
                     
                     /**
+                        Fx18
+                            Set sound timer to x.
+                     */
+                case 0x0018:
+                    m_soundTimer = ((opcode & 0x0F00) >> 8);
+                    break;
+                    
+                    /**
+                        Fx1E
+                            Set I to I + register Vx.
+                     */
+                case 0x001E:
+                    m_I += m_registerV[(opcode & 0x0F00) >> 8];
+                    break;
+                    
+                    /**
                         Fx29
                             Set I to corresponding sprite for digit at Vx.
                      */
@@ -465,6 +481,13 @@ void Interpreter::Run()
     if (m_delayTimer > 0)
     {
         --m_delayTimer;
+    };
+    
+    // Subtract one from the sound timer.
+    // (Should be at a rate of 1 per 60Hz)
+    if (m_soundTimer > 0)
+    {
+        --m_soundTimer;
     };
 };
 

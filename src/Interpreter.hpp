@@ -49,6 +49,8 @@ class Interpreter
 
         /** Delay timer */
         uint8_t m_delayTimer;
+        /** Sound timer */
+        uint8_t m_soundTimer;
         /** Holds the current position of the stack*/
         int8_t m_stackPointer;
 		/** Holds the screen size (ex. 0x4020 = 64*32) */
