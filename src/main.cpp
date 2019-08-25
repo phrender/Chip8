@@ -86,6 +86,9 @@ int main(int argc, char** argv)
             SDL_UpdateWindowSurface(g_pWindow);
         };
         ShutdownSDL();
+        
+        delete pScreen;
+        pScreen = nullptr;
             
         return 0;
     };
@@ -183,12 +186,19 @@ void ShutdownSDL()
     if (g_pSurface)
     {
         SDL_FreeSurface(g_pSurface);
+        g_pSurface = nullptr;
     };
     
     if (g_pWindow)
     {
         SDL_DestroyWindow(g_pWindow);
         g_pWindow = nullptr;
+    };
+    
+    if (g_pInterpreter)
+    {
+        g_pInterpreter.reset();
+        g_pInterpreter = nullptr;
     };
     
     SDL_Quit();
