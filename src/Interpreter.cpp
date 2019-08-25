@@ -487,6 +487,10 @@ void Interpreter::Run()
     // (Should be at a rate of 1 per 60Hz)
     if (m_soundTimer > 0)
     {
+        if (m_soundTimer == 1)
+        {
+            // TODO: Implement audio beep here.
+        };
         --m_soundTimer;
     };
 };
