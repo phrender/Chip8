@@ -86,9 +86,6 @@ int main(int argc, char** argv)
             SDL_UpdateWindowSurface(g_pWindow);
         };
         ShutdownSDL();
-        
-        delete pScreen;
-        pScreen = nullptr;
             
         return 0;
     };
@@ -99,7 +96,7 @@ int main(int argc, char** argv)
 
 bool InitializeSDL(const std::string& windowName, uint32_t windowWidth, uint32_t windowHeight)
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS  | SDL_INIT_AUDIO) != 0)
     {
         printf("Unable to initialize SDL: %s\n", SDL_GetError());
         return false;
