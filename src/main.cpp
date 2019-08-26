@@ -38,7 +38,7 @@ std::unique_ptr<Interpreter> g_pInterpreter = nullptr;
 /**
     Emulator key map.
  */
-std::array<uint8_t, CHIP8_KEYBOARD_SIZE> g_keyboardMap = {};
+std::array<uint8_t, g_chipKeyboardSize> g_keyboardMap = {};
 
 /**
     Initialize SDL for Chip8 emulator
@@ -61,6 +61,9 @@ void HandleInput();
  */
 void ShutdownSDL();
 
+/**
+ 	Entrypoint for program.
+ */
 int main(int argc, char** argv)
 {
     g_pInterpreter = std::make_unique<Interpreter>();
@@ -68,7 +71,7 @@ int main(int argc, char** argv)
     if (InitializeSDL("Chip8", 640, 320) &&
         argc == 2 &&
         g_pInterpreter != nullptr &&
-        g_pInterpreter->Initialize(argv[1], g_screenSize))
+        g_pInterpreter->Initialize(argv[1], ScreenSize::Chip8))
     {
         uint32_t* pScreen = static_cast<uint32_t*>(g_pSurface->pixels);
         while (!g_quit)

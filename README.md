@@ -3,10 +3,10 @@ A Chip 8 emulator to practice C++, currently no audio support.
 
 ##### Keymap
 ```
-|1|2|3|4|    |1|2|3|4|
-|1|2|3|4| => |Q|W|E|R|
-|1|2|3|4|    |A|S|D|F|
-|1|2|3|4|    |Z|X|C|V|
+|1|2|3|C|    |1|2|3|4|
+|4|5|6|D| => |Q|W|E|R|
+|7|8|9|E|    |A|S|D|F|
+|A|0|B|F|    |Z|X|C|V|
 ```
 
 ### Requirements

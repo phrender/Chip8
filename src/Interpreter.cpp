@@ -9,7 +9,7 @@
 /**
     Default Constructor
  */
-Interpreter::Interpreter() : m_delayTimer(0x00), m_soundTimer(0x00), m_stackPointer(0xFF), m_screenSize(0x0000), m_programCounter(0x0200), m_I(0x0000)
+Interpreter::Interpreter() : m_delayTimer(0x00), m_soundTimer(0x00), m_stackPointer(0xFF), m_screenSize(ScreenSize::Chip8), m_programCounter(0x0200), m_I(0x0000)
 {
     /**
         Initialize the screen buffer
@@ -38,10 +38,11 @@ Interpreter::~Interpreter()
 /**
     Initializes the Interpreter to open, validate and place the loaded ROM in the allocated 4K memory.
 
-    @param[in] filePath Path to the ROM file to load
+    @param[in] filePath Path to the ROM file to load.
+	@param[in] screenSize Size of the screen.
     @return true or false depending on initialization of emulator RAM and loading of the ROM
  */
-bool Interpreter::Initialize(const char* filePath, uint16_t screenSize)
+bool Interpreter::Initialize(const char* filePath, ScreenSize screenSize)
 {
 	m_screenSize = screenSize;
 
@@ -78,7 +79,7 @@ bool Interpreter::Initialize(const char* filePath, uint16_t screenSize)
 void Interpreter::Run()
 {
     uint16_t opcode = (m_memory[m_programCounter] << 8 | m_memory[m_programCounter + 1]);
-    uint16_t pc = m_programCounter + CHIP8_INSTRUCTION_SIZE;
+    uint16_t pc = m_programCounter + g_chipInstructionSize;
     
     switch (opcode & 0xF000) {
             
@@ -88,7 +89,7 @@ void Interpreter::Run()
             {
                     
                 /**
-                    0x0000
+                    0x0000\n
                         Clear the display.
                 */
                 case 0x0000:
@@ -102,18 +103,18 @@ void Interpreter::Run()
                     break;
                     
                 /**
-                    0x000E
+                    0x000E\n
                         Return from subroutine.
                 */
                 case 0x000E:
-                    pc = m_stack[m_stackPointer] + CHIP8_INSTRUCTION_SIZE;
+                    pc = m_stack[m_stackPointer] + g_chipInstructionSize;
                     m_stackPointer--;
                     break;
             };
             break;
 
 			/**
-				1nnn:
+				1nnn\n
 					Jump to location nnn.
 			 */
         case 0x1000:
@@ -131,31 +132,31 @@ void Interpreter::Run()
 			break;
 
 			/**
-				3xkk
+				3xkk\n
 					Compare register x to kk, if equal increment program counter by 2
 			 */
 		case 0x3000:
-			pc += m_registerV[GetRegister(opcode)] == (opcode & 0x00FF) ? CHIP8_INSTRUCTION_SIZE : 0;
+			pc += m_registerV[GetRegister(opcode)] == (opcode & 0x00FF) ? g_chipInstructionSize : 0;
 			break;
 
 			/**
-				4xkk
+				4xkk\n
 					Compare register x to kk, is not equal increment program counter by 2
 			 */
 		case 0x4000:
-			pc += m_registerV[GetRegister(opcode)] != (opcode & 0x00FF) ? CHIP8_INSTRUCTION_SIZE : 0;
+			pc += m_registerV[GetRegister(opcode)] != (opcode & 0x00FF) ? g_chipInstructionSize : 0;
 			break;
 
 			/**
-				5xy0
+				5xy0\n
 					Compare register x and y, if x and y is equal increment program counter by 2
 			 */
 		case 0x5000:
-			pc += m_registerV[(opcode & 0x0F00) >> 8] == m_registerV[(opcode & 0x00F0 >> 4)] ? CHIP8_INSTRUCTION_SIZE : 0;
+			pc += m_registerV[(opcode & 0x0F00) >> 8] == m_registerV[(opcode & 0x00F0 >> 4)] ? g_chipInstructionSize : 0;
 			break;
 
 			/**
-				6xkk
+				6xkk\n
 					Store kk in register x
 			 */
 		case 0x6000:
@@ -163,7 +164,7 @@ void Interpreter::Run()
 			break;
 
 			/**
-				7xkk
+				7xkk\n
 					Set register x to x + kk
 			 */
 		case 0x7000:
@@ -171,7 +172,7 @@ void Interpreter::Run()
 			break;
 
             /**
-                8xyn
+                8xyn\n
                     n determines which opcode we should use.
              */
 		case 0x8000:
@@ -180,7 +181,7 @@ void Interpreter::Run()
             {
                     
                     /**
-                        8xy0
+                        8xy0\n
                             Set register Vx to Vy
                      */
                 case 0x0000:
@@ -188,7 +189,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xy1
+                        8xy1\n
                             Set register Vx to Vx OR (|) Vy
                      */
                 case 0x0001:
@@ -196,7 +197,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xy2
+                        8xy2\n
                             Set register Vx to Vx AND (&) Vy
                      */
                 case 0x0002:
@@ -204,7 +205,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                     8xy3
+                     8xy3\n
                      Set register Vx XOR Vy
                      */
                 case 0x0003:
@@ -212,7 +213,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xy4
+                        8xy4\n
                             Set register Vx to Vx + Vy.
                             VF is set to carry
                             Set register VF to carry (Vx + Vy > 255, carry is equal to 1 otherwise 0)
@@ -223,7 +224,7 @@ void Interpreter::Run()
                     break;
                 
                     /**
-                        8xy5
+                        8xy5\n
                             Set register Vx to Vx - Vy
                             VF is set to NOT borrow
                      */
@@ -233,7 +234,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xy6
+                        8xy6\n
                             If the last bit of Vx is 1 set VF  to 1, otherwise 0.
                             Divide register Vx by two.
                      */
@@ -243,7 +244,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xy7
+                        8xy7\n
                             Set register Vx to Vx - Vy.
                             If Vy is greater than Vx set VF to 1, otherwise 0.
                             Register VF is set to NOT BORROW.
@@ -254,7 +255,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        8xyE
+                        8xyE\n
                             Check if most-significant bit is 1, if so set VF to 1 otherwise 0.
                             Multiply register Vx by 2.
                      */
@@ -267,15 +268,15 @@ void Interpreter::Run()
 			break;
 
 			/**
-				9xy0
+				9xy0\n
 					Skip next instruction if register x is equal to register y
 			 */
 		case 0x9000:
-			pc += m_registerV[(opcode & 0x0F00) >> 8] != m_registerV[(opcode & 0x00F0) >> 4] ? CHIP8_INSTRUCTION_SIZE : 0;
+			pc += m_registerV[(opcode & 0x0F00) >> 8] != m_registerV[(opcode & 0x00F0) >> 4] ? g_chipInstructionSize : 0;
 			break;
 
 			/**
-				Annn
+				Annn\n
 					Set I to nnn
 					Program counter is set to value nnn
 			 */
@@ -284,7 +285,7 @@ void Interpreter::Run()
 			break;
             
             /**
-                Bnnn
+                Bnnn\n
                     Set program counter to nnn + value of register V0.
              */
         case 0xB000:
@@ -292,7 +293,7 @@ void Interpreter::Run()
             break;
             
             /**
-                Cxkk
+                Cxkk\n
                     Set Vx to random byte AND kk
              */
         case 0xC000:
@@ -300,7 +301,7 @@ void Interpreter::Run()
             break;
 
 			/**
-				Dxyn
+				Dxyn\n
 					Display n-byte sprite starting at location of I
 					x - positionX from Vx
 					y - positionY from Vy
@@ -341,7 +342,7 @@ void Interpreter::Run()
             break;
 
 			/**
-				E000
+				E000\n
 					Handle input.
 			*/
 		case 0xE000:
@@ -349,25 +350,25 @@ void Interpreter::Run()
 			switch (opcode & 0x00FF)
 			{
 					/**
-						Ex9E
+						Ex9E\n
 							Skip next instruction if the key with value Vx is pressed.
 					*/
 				case 0x009E:
-                    pc += m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]] != 0 ? CHIP8_INSTRUCTION_SIZE : 0;
+                    pc += m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]] != 0 ? g_chipInstructionSize : 0;
 					break;
 
 					/**
-						ExA1
+						ExA1\n
 							Skip the next instruction if the key with value Vx is released.
 					*/
 				case 0x00A1:
-                    pc += m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]] == 0 ? CHIP8_INSTRUCTION_SIZE : 0;
+                    pc += m_keyboard[m_registerV[(opcode & 0x0F00) >> 8]] == 0 ? g_chipInstructionSize : 0;
 					break;
 			}
 			break;
             
             /**
-                FxII
+                FxII\n
                     Two last nibbles are used to determine which instruction to use.
              */
         case 0xF000:
@@ -376,7 +377,7 @@ void Interpreter::Run()
             {
                     
                     /**
-                        Fx007
+                        Fx007\n
                             Store delay timer in register Vx.
                      */
                 case 0x0007:
@@ -384,7 +385,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx0A
+                        Fx0A\n
                             Wait for a key press and then store it in register Vx.
                      */
                 case 0x000A:
@@ -393,7 +394,7 @@ void Interpreter::Run()
                     bool isKeyPressed = false;
                     
                     // Look for the pressed key.
-                    for (int i = 0; i < CHIP8_KEYBOARD_SIZE; i++)
+                    for (int i = 0; i < g_chipKeyboardSize; i++)
                     {
                         // Check if the key is pressed.
                         if (m_keyboard[i] == 0x01)
@@ -413,7 +414,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx15
+                        Fx15\n
                             Set delay timer to x.
                      */
                 case 0x0015:
@@ -421,7 +422,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx18
+                        Fx18\n
                             Set sound timer to x.
                      */
                 case 0x0018:
@@ -429,7 +430,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx1E
+                        Fx1E\n
                             Set I to I + register Vx.
                      */
                 case 0x001E:
@@ -437,7 +438,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx29
+                        Fx29\n
                             Set I to corresponding sprite for digit at Vx.
                      */
                 case 0x0029:
@@ -446,7 +447,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx33
+                        Fx33\n
                             Store the BCD (Binary Coded Decimal) of Vx in memory location starting at I.\n
                             I = one hundredth digit of Vx \n
                             I + 1 = one tenth digit of Vx \n
@@ -462,7 +463,7 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                        Fx65
+                        Fx65\n
                             Reads registers V0 to Vx from memory starting at I.
                      */
                 case 0x0065:
@@ -498,7 +499,7 @@ void Interpreter::Run()
 /**
     Draw pixels to the screen
  
-    @param[in] pixel An array of all pixels available on the screen passed.
+    @param[in] pScreen An array of all pixels available on the screen passed.
     @param[in] windowWidth Width of the window
     @param[in] windowHeight Height of the window
  */
@@ -518,11 +519,21 @@ void Interpreter::Draw(uint32_t* pScreen, uint32_t windowWidth, uint32_t windowH
     };
 };
 
+/**
+ 	Sets pressed key to 0x01
+
+	@param[in] keyIndex of key in keyboard array.
+ */
 void Interpreter::OnKeyPressed(uint8_t keyIndex)
 {
     m_keyboard[keyIndex] = 0x01;
 };
 
+/**
+ 	Sets the released key to 0x00
+
+	 @param[in] keyIndex of key in keyboard array.
+ */
 void Interpreter::OnKeyReleased(uint8_t keyIndex)
 {
     m_keyboard[keyIndex] = 0x00;
@@ -530,9 +541,7 @@ void Interpreter::OnKeyReleased(uint8_t keyIndex)
 
 /**
     Allocates 4096 KB to emulate Chip8's amount of RAM and the screen buffer
- 
-    @param[in] windowWidth The width of the window
-    @param[in] windowHeight The height of the window
+
  
     @return Successful state if we initialize the RAM and screen buffer
  */
@@ -554,6 +563,9 @@ bool Interpreter::InitializeEmulatorRAM()
     return !m_memory.empty() && m_pScreenBuffer != nullptr;
 };
 
+/**
+ 	Initialize the keys in keyboard to 0x00
+ */
 bool Interpreter::InitializeEmulatorKeyboard()
 {
     m_keyboard.fill(0x00);
@@ -592,9 +604,8 @@ bool Interpreter::InitializeFontset()
 };
 
 /**
-    Opens and loads the requested ROM file.
-    Incase of being unable to locate or place
-    the ROM in memory it will fail.
+    Opens and loads the requested ROM file.\n
+    Incase of being unable to locate or place the ROM in memory it will fail.
 
     @param[in] filePath Path to the ROM file to load
     @return Success if we can successfully load, validate and place the ROM in memory
@@ -618,9 +629,9 @@ bool Interpreter::OpenAndLoadFile(const char* filePath)
     
     file.seekg(0, file.end);
     size_t romSize = file.tellg();
-    if (romSize < 0 && romSize > (CHIP8_RAM_SIZE - 0x1FF))
+    if (romSize < 0 && romSize > (g_chipRamSize - 0x1FF))
     {
-        printf("File to large, RAM size is %u\n", CHIP8_RAM_SIZE);
+        printf("File to large, RAM size is %u\n", g_chipRamSize);
         file.close();
         return false;
     };
