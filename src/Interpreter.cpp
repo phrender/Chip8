@@ -443,7 +443,7 @@ void Interpreter::Run()
                      */
                 case 0x0029:
                     // Multiply value by five (5) since a font sprite has a length of five (5).
-                    m_I = m_registerV[(opcode & 0x0F00) >> 8] * 5;
+					m_I = m_registerV[(opcode & 0x0F00) >> 8] * 5;
                     break;
                     
                     /**
@@ -487,6 +487,10 @@ void Interpreter::Run()
                     break;
             };
             break;
+
+		default:
+			printf("Unknown");
+			break;
     };
     m_programCounter = pc;
     
@@ -612,6 +616,8 @@ bool Interpreter::InitializeFontset()
         0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
+
+	std::memcpy(&m_memory[0x00], &m_fontset[0x00], g_chipFontsetSize);
     
     return !m_fontset.empty();
 };
