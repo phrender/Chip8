@@ -655,16 +655,19 @@ bool Interpreter::OpenAndLoadFile(const char* filePath)
         return false;
     };
     
-    uint8_t* pEmulatorRom = new uint8_t[romSize];
+	uint16_t fileIndex = 0;
     file.seekg(0, std::ifstream::beg);
-    file.read((char*)pEmulatorRom, romSize);
+
+	// Read from file one byte at the time.
+	while (file)
+	{
+		// Add bytes from byte 512 until the end of the file.
+		m_memory[0x0200 + fileIndex] = file.get();
+		fileIndex++; // Increase the index after each byte.
+	};
     file.close();
     
-    memcpy(&m_memory[0x200], pEmulatorRom, romSize);
-    delete[] pEmulatorRom;
-    pEmulatorRom = nullptr;
-    
-    return !file.is_open() && pEmulatorRom == nullptr;
+    return !file.is_open();
 };
 
 /**
