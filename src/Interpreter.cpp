@@ -205,8 +205,8 @@ void Interpreter::Run()
                     break;
                     
                     /**
-                     8xy3\n
-                     Set register Vx XOR Vy
+						8xy3\n
+                     		Set register Vx XOR Vy
                      */
                 case 0x0003:
                     m_registerV[(opcode & 0x0F00) >> 8] ^= m_registerV[(opcode & 0x00F0) >> 4];

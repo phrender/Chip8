@@ -7,17 +7,17 @@
 #include <array>
 #include <memory>
 
-/** \def Chip8 RAM size 4096 KB */
+/** Chip8 RAM size 4096 KB */
 constexpr uint16_t g_chipRamSize = 0x1000;
-/** \def Size of a Chip8 instruction (16 bits) */
+/** Size of a Chip8 instruction (16 bits) */
 constexpr uint8_t g_chipInstructionSize = 0x10;
-/** \def Size of the Chip8 register bank */
+/** Size of the Chip8 register bank */
 constexpr uint8_t g_chipRegisterBankSize = 0x10;
-/** \def Size of the Chip8 stack */
+/** Size of the Chip8 stack */
 constexpr uint8_t g_chipStackSize = 0x10;
-/** \def Number of keys available on a Chip8 */
+/** Number of keys available on a Chip8 */
 constexpr uint8_t g_chipKeyboardSize = 0x10;
-/** \def Chip8 fonstset size */
+/** Chip8 fonstset size */
 constexpr uint8_t g_chipFontsetSize = 0x50;
 
 /**
