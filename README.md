@@ -1,6 +1,14 @@
 # Chip8
 A Chip 8 emulator to practice C++, currently no audio support.
 
+##### Keymap
+```
+|1|2|3|4|    |1|2|3|4|
+|1|2|3|4| => |Q|W|E|R|
+|1|2|3|4|    |A|S|D|F|
+|1|2|3|4|    |Z|X|C|V|
+```
+
 ### Requirements
 * CMake 3.11
 * SDL 2.0.10
