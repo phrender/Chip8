@@ -8,17 +8,17 @@
 #include <memory>
 
 /** Chip8 RAM size 4096 KB */
-constexpr uint16_t g_chipRamSize = 0x1000;
+constexpr uint16_t g_chipRamSize = 4096;
 /** Size of a Chip8 instruction (16 bits) */
-constexpr uint8_t g_chipInstructionSize = 0x10;
+constexpr uint8_t g_chipInstructionSize = 2;
 /** Size of the Chip8 register bank */
-constexpr uint8_t g_chipRegisterBankSize = 0x10;
+constexpr uint8_t g_chipRegisterBankSize = 16;
 /** Size of the Chip8 stack */
-constexpr uint8_t g_chipStackSize = 0x10;
+constexpr uint8_t g_chipStackSize = 16;
 /** Number of keys available on a Chip8 */
-constexpr uint8_t g_chipKeyboardSize = 0x10;
+constexpr uint8_t g_chipKeyboardSize = 16;
 /** Chip8 fonstset size */
-constexpr uint8_t g_chipFontsetSize = 0x50;
+constexpr uint8_t g_chipFontsetSize = 80;
 
 /**
 	Allows for easier handling of multiple screen sizes.

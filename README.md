@@ -17,7 +17,7 @@ A Chip 8 emulator to practice C++, currently no audio support.
 * Create external folder and place SDL inside of it. (`external\SDL`)
 * Create build folder and enter it.
 * Generate from source
-  * For `Windows Visual Studio` run `cmake -G "Visual Studio 15 2017" ..`
+  * For `Microsoft Visual Studio` run `cmake -G "Visual Studio 15 2017" ..`
   * For MacOS/Linux `run cmake ..`
 * Build
   * `Windows`
