@@ -461,6 +461,19 @@ void Interpreter::Run()
                     m_memory[m_I + 2] = value % 10;
                 }
                     break;
+
+					/**
+						Fx55\n
+							Load register V0 through Vx in to memory.
+					 */
+				case 0x0055:
+					{
+						for (uint8_t i = 0; i < ((opcode & 0x0F00) >> 8); i++)
+						{
+							m_memory[m_I + i] = m_registerV[i];
+						};
+					};
+					break;
                     
                     /**
                         Fx65\n
